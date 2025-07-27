@@ -1,4 +1,7 @@
-<img width="1504" height="1003" alt="image" src="https://github.com/user-attachments/assets/abaf9441-cd95-485d-9a1a-c7cf937ae849" /># NammaDrishtiAI
+
+![Uploading WhatsApp Image 2025-07-27 at 08.29.12_804dafbc.jpg…]()
+
+# NammaDrishtiAI
 
 NammaDrishtiAI is an innovative Agentic AI application designed to manage city data overload by synthesizing real-time urban data, enabling citizen reporting, predicting issues, and visualizing insights on a map-based dashboard using Google Cloud technologies. Developed by the InnoAlForce team for the Google Cloud Agentic AI Day, this solution empowers citizens and authorities with actionable insights to enhance urban management and public safety.
 
