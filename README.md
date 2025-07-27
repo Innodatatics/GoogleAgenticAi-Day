@@ -1,5 +1,5 @@
+![WhatsApp Image 2025-07-27 at 08 29 12_c6a2f3b8](https://github.com/user-attachments/assets/ee7b73b1-c483-47c6-b828-5117c7b0b725)
 
-![Uploading WhatsApp Image 2025-07-27 at 08.29.12_804dafbc.jpg…]()
 
 # NammaDrishtiAI
 
