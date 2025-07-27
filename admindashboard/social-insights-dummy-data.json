@@ -1,0 +1,113 @@
+
+[
+  {
+    "id": "reddit-1",
+    "source": "Reddit",
+    "title": "Unbelievable traffic jam on Outer Ring Road near Marathahalli. Avoid at all costs!",
+    "url": "https://www.reddit.com/r/bangalore/comments/1",
+    "area": "Marathahalli",
+    "category": "Public Disruption",
+    "sub_category": "Traffic Jam",
+    "reason": "Post describes a major traffic gridlock.",
+    "timestamp": "2024-07-28T18:30:00Z"
+  },
+  {
+    "id": "reddit-2",
+    "source": "Reddit",
+    "title": "Major accident on Sarjapur Road involving a truck and two cars. Traffic is completely blocked.",
+    "url": "https://www.reddit.com/r/bangalore/comments/2",
+    "area": "Sarjapur",
+    "category": "Public Disruption",
+    "sub_category": "Accident",
+    "reason": "Reports a significant accident leading to road blockage.",
+    "timestamp": "2024-07-28T19:00:00Z"
+  },
+  {
+    "id": "news-1",
+    "source": "News",
+    "title": "Heavy Rains Lead to Widespread Water Logging in Koramangala",
+    "url": "https://www.example-news.com/bangalore/water-logging-koramangala",
+    "area": "Koramangala",
+    "category": "Public Disruption",
+    "sub_category": "Water Logging",
+    "reason": "News article about severe water logging.",
+    "timestamp": "2024-07-28T16:00:00Z"
+  },
+  {
+    "id": "reddit-3",
+    "source": "Reddit",
+    "title": "Power cut at BTM Layout signal causing chaos. Been an hour now.",
+    "url": "https://www.reddit.com/r/bangalore/comments/3",
+    "area": "BTM Layout",
+    "category": "Public Disruption",
+    "sub_category": "Infrastructure Failure",
+    "reason": "Traffic signal failure due to power cut.",
+    "timestamp": "2024-07-28T17:45:00Z"
+  },
+  {
+    "id": "reddit-4",
+    "source": "Reddit",
+    "title": "Huge political rally planned for tomorrow at MG Road. Expect massive diversions.",
+    "url": "https://www.reddit.com/r/bangalore/comments/4",
+    "area": "MG Road",
+    "category": "Public Disruption",
+    "sub_category": "Protest",
+    "reason": "Information about a large upcoming rally.",
+    "timestamp": "2024-07-27T21:00:00Z"
+  },
+  {
+    "id": "news-2",
+    "source": "News",
+    "title": "Coldplay Concert This Weekend at Palace Grounds: City Braces for Traffic Surge",
+    "url": "https://www.example-news.com/bangalore/coldplay-concert-traffic",
+    "area": "Malleshwaram",
+    "category": "Public Disruption",
+    "sub_category": "Concert",
+    "reason": "News about a major concert expected to cause traffic.",
+    "timestamp": "2024-07-26T12:00:00Z"
+  },
+    {
+    "id": "reddit-5",
+    "source": "Reddit",
+    "title": "Another day, another hour stuck at Silk Board junction. When will this end?",
+    "url": "https://www.reddit.com/r/bangalore/comments/5",
+    "area": "BTM Layout",
+    "category": "Public Disruption",
+    "sub_category": "Traffic Jam",
+    "reason": "Recurring traffic jam at a known bottleneck.",
+    "timestamp": "2024-07-28T09:00:00Z"
+  },
+  {
+    "id": "reddit-6",
+    "source": "Reddit",
+    "title": "Massive pothole on the main road in Indiranagar near the metro station. Two bikers fell today.",
+    "url": "https://www.reddit.com/r/bangalore/comments/6",
+    "area": "Indiranagar",
+    "category": "Public Disruption",
+    "sub_category": "Pothole",
+    "reason": "Dangerous pothole causing accidents.",
+    "timestamp": "2024-07-28T14:00:00Z"
+  },
+  {
+    "id": "news-3",
+    "source": "News",
+    "title": "Whitefield roads resemble a warzone. Commute is a nightmare.",
+    "url": "https://www.example-news.com/bangalore/whitefield-road-conditions",
+    "area": "Whitefield",
+    "category": "Public Disruption",
+    "sub_category": "Infrastructure Failure",
+    "reason": "General report on poor road conditions causing traffic issues.",
+    "timestamp": "2024-07-27T11:00:00Z"
+  },
+    {
+    "id": "reddit-7",
+    "source": "Reddit",
+    "title": "Heads up: Religious procession on Thursday from Basavanagudi to Malleshwaram. Roads will be packed.",
+    "url": "https://www.reddit.com/r/bangalore/comments/7",
+    "area": "Malleshwaram",
+    "category": "Public Disruption",
+    "sub_category": "Procession",
+    "reason": "Advance warning of a large procession.",
+    "timestamp": "2024-07-29T10:00:00Z"
+  }
+]
