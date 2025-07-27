@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Alert Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f9fafb;
+      display: flex;
+      height: 100vh;
+      color: #1f2937;
+    }
+
+    .sidebar {
+      width: 270px;
+      background-color: #111827;
+      color: rgb(255, 255, 255);
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 28px;
+      margin-bottom: 40px;
+      color: rgb(232, 127, 7);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      background-color: transparent;
+      transition: background 0.25s;
+      font-size: 16px;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background-color: #5f6875;
+    }
+
+    .nav-item i,
+    .nav-item svg {
+      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    .sidebar .user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      padding-top: 28px;
+    }
+
+    .sidebar .user img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-right: 14px;
+      border: 2px solid white;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px 50px;
+      overflow-y: auto;
+    }
+
+    .main .header {
+      display: flex;
+      align-items: center;
+      background-color: #f3f4f6;
+      padding: 20px 26px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .main .header a {
+      margin-left: auto;
+      font-size: 14px;
+      background-color: #c8cdcf;
+      color: black;
+      padding: 8px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+    }
+
+    input[type="text"], select, input[type="date"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background-color: #e0f2fe;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      margin-bottom: 16px;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+      cursor: pointer;
+    }
+
+    .card h4 {
+      margin-bottom: 8px;
+      color: #0284c7;
+    }
+
+    .card span {
+      display: block;
+      margin-top: 4px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .card a {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #0c4a6e;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2><b>Dashboard</b></h2>
+    <a href="{{ url_for('dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bell"></i> Today's Alerts</div></a>
+    <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bar-chart-2"></i> Admin Analytics</div></a>
+    <a href="{{ url_for('create_issue') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="plus-circle"></i> Create Issue</div></a>
+    <a href="{{ url_for('current_issues') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="tool"></i> Current Issues</div></a>
+    <a href="{{ url_for('search') }}" style="text-decoration: none; color: inherit;"> <div class="nav-item active"><i data-feather="search"></i> Search</div></a> 
+    <a href="{{ url_for('social_insights') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="activity"></i> Social Insights</div></a>
+    <div class="user">
+      <img src="{{ url_for('static', filename='user_profile.png') }}" alt="User" />
+      <div style="font-size: 30px;">User</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <i data-feather="search"></i> Search Issues
+      <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Search by type, description, location...">
+      <select id="typeFilter">
+        <option value="">All Types</option>
+        <option value="Traffic">Traffic</option>
+        <option value="Crime">Crime</option>
+        <option value="Road">Road</option>
+        <option value="Pollution">Pollution</option>
+      </select>
+      <input type="date" id="startDate">
+      <input type="date" id="endDate">
+    </div>
+
+    <div id="results">
+      {% for issue in issues %}
+      <div class="card">
+        <h4>{{ issue.issue_type }}</h4>
+        <span><strong>Description:</strong> {{ issue.description }}</span>
+        <span><strong>Location:</strong> {{ issue.relative_location or issue.location }}</span>
+        <span><strong>Reported on:</strong> {{ issue.timestamp }}</span>
+        <span><strong>By:</strong> {{ issue.creator_emails | join(', ') }}</span>
+        <a href="/issue/{{ issue.id }}">View Details</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    feather.replace();
+
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const cards = document.querySelectorAll('#results .card');
+
+    function filterResults() {
+      const query = searchInput.value.toLowerCase();
+      const type = typeFilter.value.toLowerCase();
+      const start = startDate.value ? new Date(startDate.value) : null;
+      const end = endDate.value ? new Date(endDate.value) : null;
+
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        const dateText = card.querySelector('span:nth-child(4)').innerText;
+        const dateStr = dateText.split('Reported on:')[1]?.trim();
+        const issueDate = new Date(dateStr);
+
+        const matchesQuery = text.includes(query);
+        const matchesType = !type || text.includes(type);
+        const matchesStart = !start || (issueDate >= start);
+        const matchesEnd = !end || (issueDate <= end);
+
+        card.style.display = (matchesQuery && matchesType && matchesStart && matchesEnd) ? 'block' : 'none';
+      });
+    }
+
+    searchInput.addEventListener('input', filterResults);
+    typeFilter.addEventListener('change', filterResults);
+    startDate.addEventListener('change', filterResults);
+    endDate.addEventListener('change', filterResults);
+  </script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Analytics - Smart Alert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    * { margin: 0; padding: 0; font-family: 'Inter', sans-serif; box-sizing: border-box; }
+    body {
+      background-color: #f9fafb;
+      display: flex;
+      height: 100vh;
+      color: #1f2937;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 270px;
+      background-color: #111827;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+    }
+    .sidebar h2 {
+      font-size: 28px;
+      margin-bottom: 40px;
+      color: rgb(232, 127, 7);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.25s;
+    }
+    .nav-item.active, .nav-item:hover { background-color: #5f6875; }
+    .nav-item i { margin-right: 12px; width: 20px; height: 20px; }
+    .sidebar .user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      padding-top: 28px;
+    }
+    .sidebar .user img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-right: 14px;
+      border: 2px solid white;
+    }
+    .main {
+      flex: 1;
+      padding: 40px 50px;
+      overflow-y: auto;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 20px 26px;
+      border-radius: 18px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+    .cards.status {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-bottom: 32px;
+    }
+    .card {
+      background-color: #ffffff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s;
+      text-align: center;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card p {
+      font-size: 32px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .scroll-card {
+      min-width: 320px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 18px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+    }
+    .status-badge.pending { background: #f59e0b; }
+    .status-badge.completed { background: #10b981; }
+    .status-badge.in-progress { background: #facc15; }
+    .status-badge.on-hold { background: #c4c5fb; }
+    .btn-green, .btn-yellow, .btn-gray {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-green { background-color: #10b981; color: white; }
+    .btn-yellow { background-color: #facc15; color: #111827; }
+    .btn-gray { background-color: #9a9aaa; color: white; }
+    .main > div::-webkit-scrollbar { width: 8px; }
+    .main > div::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 6px;
+    }
+    select {
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2><b>Dashboard</b></h2>
+    <div class="nav-item active"><i data-feather="bar-chart-2"></i>&nbsp; Admin Analytics</div>
+    <div class="nav-item"><i data-feather="user-check"></i>&nbsp;<a href="{{ url_for('user_contributions_page') }}" style="color: inherit; text-decoration: none;">&nbsp; User Contributions</a></div>
+  </div>
+
+  <div class="main">
+    <div class="header"><i data-feather="bar-chart-2"></i>&nbsp; Admin Analytics Overview</div>
+
+<h2 style="margin-bottom: 20px;">🧠 Overall Issue Summary</h2>
+<div class="cards status">
+  <div class="card" style="background-color: #DCFCE7;"><h3>✅ Completed</h3><p>{{ status_counts['Completed'] }}</p></div>
+  <div class="card" style="background-color: #FEF9C3;"><h3>🕒 In Progress</h3><p>{{ status_counts['In Progress'] }}</p></div>
+  <div class="card" style="background-color: #c4c5fb;"><h3>⏸ On Hold</h3><p>{{ status_counts['On Hold'] }}</p></div>
+  <div class="card" style="background-color: #fbb4b4;"><h3>🕓 Pending</h3><p>{{ status_counts['Pending'] }}</p></div>
+  <div class="card" style="background-color: #e6c4f0;"><h3>🆕 No. Of Users</h3><p>{{ user_contributions|length }}</p></div>
+</div>
+
+    <!-- Row 2 -->
+    <div style="display: flex; gap: 30px; margin-top: 40px; height: 400px;">
+      <!-- Manage Issues -->
+      <div style="flex: 1; overflow-y: auto; padding-right: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="margin: 0 0 12px;">🛠 Manage Issues</h2>
+          <select id="issue-filter">
+            <option value="All">All</option>
+            <option value="Civic">Civic</option>
+            <option value="Crime">Crime</option>
+            <option value="Traffic">Traffic</option>
+            <option value="Event">Event</option>
+            <option value="Other">Other</option>
+          </select>
+        </div><br>
+        <div id="issue-list" style="display: flex; flex-direction: column; gap: 20px;">
+          {% for issue in issues %}
+          <div class="scroll-card" data-category="{{ issue.issue_type }}">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div><strong>#{{ issue.id }}</strong><br><span>{{ issue.issue_type }} - {{ issue.location }}</span></div>
+              <span class="status-badge {{ issue.status | lower | replace(' ', '-') }}">{{ issue.status }}</span>
+            </div>
+            <hr style="margin: 12px 0;">
+            <p><strong>Description:</strong> {{ issue.description }}</p>
+            <p><strong>Submitted by:</strong> {{ issue.name }} ({{ issue.creator_email }})</p>
+            <p><strong>Created at:</strong> {{ issue.timestamp[:10] }}</p>
+            <form class="status-form">
+              <input type="hidden" name="issue_id" value="{{ issue.id }}">
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="btn-green status-btn" data-status="Completed">✅ Completed</button>
+                <button type="button" class="btn-yellow status-btn" data-status="In Progress">🕒 In Progress</button>
+                <button type="button" class="btn-gray status-btn" data-status="On Hold">⏸ On Hold</button>
+              </div>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Category Summary Table -->
+      <div style="flex: 1; overflow-y: auto; padding-right: 8px;">
+        <h2 style="margin: 0 0 12px;">📂 Category-wise Status Summary</h2><br>
+        <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff;">
+          <thead style="position: sticky; top: 0; background-color: #f3f4f6; z-index: 1;">
+            <tr>
+              <th style="padding: 12px 16px;">Category</th>
+              <th style="padding: 12px 16px; color: #10b981;">✅ Completed</th>
+              <th style="padding: 12px 16px; color: #facc15;">🕒 In Progress</th>
+              <th style="padding: 12px 16px; color: #c4c5fb;">⏸ On Hold</th>
+              <th style="padding: 12px 16px; color: #f59e0b;">🕓 Pending</th>
+              <th style="padding: 12px 16px;color: #b80505;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category, counts in category_status_counts.items() %}
+            <tr>
+              <td style="padding: 12px 16px;">{{ category }}</td>
+              <td style="padding: 12px 16px; color: #10b981;">{{ counts.Completed }}</td>
+              <td style="padding: 12px 16px; color: #facc15;">{{ counts['In Progress'] }}</td>
+              <td style="padding: 12px 16px; color: #c4c5fb;">{{ counts['On Hold'] }}</td>
+              <td style="padding: 12px 16px; color: #f59e0b;">{{ counts.Pending }}</td>
+              <td style="padding: 12px 16px; color: #c40404;">{{ counts.Total }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div><br><br>
+
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+  <a href="{{ url_for('dashboard') }}" style="text-decoration: none;">
+    <button style="
+      padding: 10px 20px;
+      background-color: #bfd0ea;
+      color: rgb(0, 0, 0);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    ">
+      ← Back to Dashboard
+    </button>
+  </a>
+</div>
+</div>
+
+
+  <script>
+    feather.replace();
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const form = btn.closest('.status-form');
+        const issueId = form.querySelector('input[name="issue_id"]').value;
+        const newStatus = btn.getAttribute('data-status');
+
+        const formData = new FormData();
+        formData.append('issue_id', issueId);
+        formData.append('status', newStatus);
+
+        const res = await fetch("{{ url_for('update_status') }}", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const card = form.closest('.scroll-card');
+          const badge = card.querySelector('.status-badge');
+          const oldStatus = badge.dataset.originalStatus;
+          badge.innerText = newStatus;
+          badge.className = 'status-badge ' + newStatus.toLowerCase().replace(/\s/g, '-');
+          badge.dataset.originalStatus = newStatus;
+          updateCount(newStatus, oldStatus);
+        } else {
+          alert("Failed to update status: " + data.error);
+        }
+      });
+    });
+
+    document.getElementById("issue-filter").addEventListener("change", function () {
+      const selected = this.value;
+      document.querySelectorAll(".scroll-card").forEach(card => {
+        const category = card.getAttribute("data-category");
+        if (selected === "All" || category === selected) {
+          card.style.display = "block";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    });
+
+  </script>
+</body>
+</html>

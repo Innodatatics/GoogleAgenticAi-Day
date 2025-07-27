@@ -1,0 +1,18 @@
+<div class="p-4">
+<h2>{{ issue.issue_type }}</h2><br>
+
+<p><strong>Description:</strong> {{ issue.description }}</p>
+<p><strong>Location:</strong> {{ issue.location }}</p>
+<p><strong>Duration:</strong> {{ issue.duration }}</p>
+<p><strong>Reported by:</strong> {{ issue.name }} ({{ issue.email }})</p>
+<p><strong>Phone:</strong> {{ issue.phone }}</p>
+<p><strong>Traffic Flow:</strong> {{ issue.traffic_flow }}</p>
+<p><strong>Causing Harm:</strong> {{ issue.causing_harm }}</p>
+
+  {% if issue.proof_url %}
+    <div class="mb-4">
+      <strong>Proof Image:</strong><br>
+      <img src="{{ issue.proof_url }}" alt="Proof" class="rounded shadow mt-2 max-w-full h-auto" />
+    </div>
+  {% endif %}
+</div>

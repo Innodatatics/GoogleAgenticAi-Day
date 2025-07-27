@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Alert Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f9fafb;
+      display: flex;
+      height: 100vh;
+      color: #1f2937;
+    }
+
+    .sidebar {
+      width: 270px;
+      background-color: #111827;
+      color: rgb(255, 255, 255);
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 28px;
+      margin-bottom: 40px;
+      color: rgb(232, 127, 7);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      background-color: transparent;
+      transition: background 0.25s;
+      font-size: 16px;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background-color: #5f6875;
+    }
+
+    .nav-item i,
+    .nav-item svg {
+      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    .sidebar .user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      padding-top: 28px;
+    }
+
+    .sidebar .user img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-right: 14px;
+      border: 2px solid white;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px 50px;
+      overflow-y: auto;
+    }
+
+    .main .header {
+      display: flex;
+      align-items: center;
+      background-color: #f3f4f6;
+      padding: 20px 26px;
+      border-radius: 18px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .main .header svg {
+      width: 22px;
+      height: 22px;
+      margin-right: 12px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .card {
+      background-color: #e0f2fe;
+      padding: 28px 24px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+    }
+
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: #6b7280;
+      font-size: 15px;
+    }
+
+    .card img.map {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-top: 14px;
+    }
+
+    .create-issue {
+      background-color: #e0f2fe;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      min-height: 260px;
+    }
+
+    .create-issue .plus {
+      font-size: 40px;
+      color: #0284c7;
+      margin-bottom: 10px;
+    }
+
+    .create-issue button {
+      background-color: #0284c7;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      margin-top: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .create-issue button:hover {
+      background-color: #0369a1;
+    }
+
+    .issue-details {
+      font-size: 15px;
+      margin-top: 10px;
+    }
+
+    .issue-details span {
+      display: block;
+      margin-top: 5px;
+      color: #6b7280;
+    }
+
+    .issue-details .points {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .issue-details a {
+      color: #0284c7;
+      font-size: 14px;
+      display: inline-block;
+      margin-top: 10px;
+      text-decoration: none;
+    }
+
+    .issue-details a:hover {
+      text-decoration: underline;
+    }
+    #issueModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #issueModal .modal-box {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+     #issueModal .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 22px;
+      cursor: pointer;
+      color: #555;
+    }
+    .scroll-container {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .scroll-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scroll-container::-webkit-scrollbar-thumb {
+      background-color: #ccc;
+      border-radius: 10px;
+    }
+    .scroll-container::-webkit-scrollbar-track {
+       background-color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2><b>Dashboard</b></h2>
+    <div class="nav-item active"><i data-feather="bell"></i> Today's Alerts</div>
+    <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bar-chart-2"></i> Admin Analytics</div></a>
+    <a href="{{ url_for('create_issue') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="plus-circle"></i> Create Issue</div></a>
+    <a href="{{ url_for('current_issues') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="tool"></i> Current Issues</div></a>
+    <a href="{{ url_for('search') }}" style="text-decoration: none; color: inherit;"> <div class="nav-item"><i data-feather="search"></i> Search</div></a> 
+    <a href="{{ url_for('social_insights') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="activity"></i> Social Insights</div></a>
+    <div class="user">
+      <img src="{{ url_for('static', filename='user_profile.png') }}" alt="User" />
+      <div style="font-size: 30px;">User</div>
+    </div>
+  </div>
+
+  <div class="main">
+  <div class="header">
+    <i data-feather="bell"></i> Today's Alerts
+  </div><br>
+
+  <!-- Row 1 -->
+<div class="cards" style="grid-template-columns: repeat(2, 1fr);">
+  <div class="card" style="min-height: 270px;">
+    <h3 style="color: #e37404;">Rainfall Predicted Areas</h3>
+    <p>Alternate routes suggested</p><br>
+    <div id="rainMap" style="height: 200px; width: 100%; border-radius: 10px;"></div>
+  </div>
+
+  <div class="card create-issue">
+    <div class="plus">➕</div>
+    <h3 style="color: #e37404;"></h3>Create New Issue</h3>
+    <a href="{{ url_for('show_create_issue_form') }}">
+      <button>New Issue</button>
+    </a>
+  </div>
+</div><br>
+
+<!-- Row 2 -->
+<div class="cards" style="grid-template-columns: repeat(2, 1fr);">
+  <!-- Scrollable Recent Issues -->
+  <div class="card" style="max-height: 420px; overflow-y: auto;">
+    <h3 style="color: #e37404;">Recent Issues</h3><br>
+    <div class="scroll-container">
+      {% if issues %}
+        <div class="grid gap-4">
+          {% for issue in issues %}
+            <div class="card" style="background: #f0f9ff; box-shadow: none;">
+              <h4>{{ issue.issue_type }}</h4>
+              <div class="issue-details">
+                <span><strong>Description:</strong> {{ issue.description }}</span>
+                <span><strong>Location:</strong> {{ issue.relative_location or issue.location }}</span>
+                <span><strong>Reported on:</strong> {{ issue.timestamp }}</span>
+                <span><strong>Reported by:</strong> {{ issue.creator_emails | join(', ') }}</span>
+                <span><strong>Solved:</strong> {{ 'Yes' if issue.is_solved else 'No' }}</span>
+                <span><strong>No. of Reports:</strong> {{ issue.no_of_reports }}</span>
+                <span><strong>Related Reports:</strong>
+                  {% if issue.related_report_ids %}
+                    {{ issue.related_report_ids | join(', ') }}
+                  {% else %}
+                    None
+                  {% endif %}
+                </span>
+                <span><strong>Proofs:</strong>
+                  {% if issue.proofs %}
+                    <ul>
+                      {% for proof in issue.proofs %}
+                        <li><a href="{{ proof }}" target="_blank">View</a></li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    None
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No issues reported yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+<div class="card" style="height: 420px;">
+<h3 style="color: #e37404;">Location Issues</h3>
+<!-- Icon Legend Row -->
+<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; margin-bottom: 12px;">
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/535/535137.png" alt="Safety" width="20" height="20">
+    <span style="font-size: 13px;">Safety</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/296/296216.png" alt="Traffic" width="20" height="20">
+    <span style="font-size: 13px;">Traffic</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/8094/8094606.png" alt="Road" width="20" height="20">
+    <span style="font-size: 13px;">Road</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/942/942748.png" alt="Civic" width="20" height="20">
+    <span style="font-size: 13px;">Civic</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/60/60995.png" alt="Crime" width="20" height="20">
+    <span style="font-size: 13px;">Crime</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/484/484167.png" alt="Other" width="20" height="20">
+    <span style="font-size: 13px;">Other</span>
+  </div>
+</div>
+
+<!-- Actual Map -->
+<div id="locationMap" style="height: 320px; width: 100%; border-radius: 10px;"></div>
+</div>
+</div>
+
+ <script>
+  feather.replace();
+
+  function openIssuePopup(issueId) {
+    fetch(`/issue/${issueId}`)
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('issueModal').style.display = 'flex';
+      })
+      .catch(err => {
+        alert("Failed to load issue details");
+        console.error(err);
+      });
+  }
+
+  function closeModal() {
+    document.getElementById('issueModal').style.display = 'none';
+    document.getElementById('modalContent').innerHTML = '';
+  }
+
+  // -------------------------
+  // RAINFALL PREDICTED AREAS (Cleaned logic)
+  // -------------------------
+
+  const map = L.map('rainMap', {
+    zoomControl: false,
+    attributionControl: false
+  }).setView([12.9716, 77.5946], 11); 
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // List of real Bangalore locality coordinates to check rainfall
+  const rainfallSpots = [
+    { name: "Whitefield", lat: 12.9698, lon: 77.7499 },
+    { name: "Koramangala", lat: 12.9352, lon: 77.6141 },
+    { name: "Indiranagar", lat: 12.9719, lon: 77.6412 },
+    { name: "Yelahanka", lat: 13.1007, lon: 77.5963 },
+    { name: "Electronic City", lat: 12.8398, lon: 77.6770 },
+    { name: "Banashankari", lat: 12.9184, lon: 77.5733 },
+    { name: "Jayanagar", lat: 12.9250, lon: 77.5938 },
+    { name: "Malleshwaram", lat: 13.0094, lon: 77.5695 },
+    { name: "Hebbal", lat: 13.0350, lon: 77.5913 }
+  ];
+
+  // Highlight areas where rain is expected
+  rainfallSpots.forEach(spot => {
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&daily=precipitation_sum&timezone=auto`)
+      .then(res => res.json())
+      .then(data => {
+        const rainAmount = data.daily.precipitation_sum[0];
+        if (rainAmount > 0) {
+          let rainColor = '#0ea5e9';
+          if (rainAmount > 5) rainColor = '#0284c7';
+          if (rainAmount > 10) rainColor = '#f59e0b';
+          if (rainAmount > 20) rainColor = '#ef4444';
+
+          const circle = L.circle([spot.lat, spot.lon], {
+            color: rainColor,
+            fillColor: rainColor,
+            fillOpacity: 0.5,
+            radius: 600 
+          }).addTo(map);
+
+          circle.bindPopup(`📍 <b>${spot.name}</b><br>🌧 Rainfall: ${rainAmount} mm/day`);
+        }
+      })
+      .catch(err => console.error(`Error at ${spot.name}:`, err));
+  });
+
+  // Rainfall legend
+  const rainLegend = L.control({ position: "bottomright" });
+  rainLegend.onAdd = function (map) {
+    const div = L.DomUtil.create("div", "info legend");
+    const labels = ["0-5 mm", "5-10 mm", "10-20 mm", "20+ mm"];
+    const colors = ["#0ea5e9", "#0284c7", "#f59e0b", "#ef4444"];
+    div.innerHTML = "<strong>🌧 Rainfall</strong><br>";
+    for (let i = 0; i < labels.length; i++) {
+      div.innerHTML += `<i style="background:${colors[i]};width:14px;height:14px;display:inline-block;margin-right:8px;border-radius:3px;"></i> ${labels[i]}<br>`;
+    }
+    return div;
+  };
+  rainLegend.addTo(map);
+  
+  // -----------------------------
+  // 📍 Issue Location Map (Bottom)
+  // -----------------------------
+  const locationMap = L.map('locationMap', {
+    zoomControl: false,
+    attributionControl: false
+  }).setView([12.9716, 77.5946], 11);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(locationMap);
+
+  const issues = {{ issues | tojson }};
+  const icons = {
+  Safety: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/535/535137.png',
+    iconSize: [30, 30]
+  }),
+  Traffic: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/296/296216.png',
+    iconSize: [30, 30]
+  }),
+  Road: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/8094/8094606.png',
+    iconSize: [30, 30]
+  }),
+  Civic: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/942/942748.png', 
+    iconSize: [30, 30]
+  }),
+  Other: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/484/484167.png',
+    iconSize: [30, 30]
+  }),
+  Crime: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/60/60995.png',
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30]
+})
+};
+  issues.forEach(issue => {
+    console.log('Rendering issue:', issue); 
+
+    const lat = parseFloat(issue.latitude) || null;
+    const lon = parseFloat(issue.longitude) || null;
+    if (!lat || !lon) return;
+
+    const type = issue.issue_type || 'Other';
+
+    let circleColor = "#ff9800";
+    if (type === "Safety") circleColor = "#dc2626";
+    else if (type === "Traffic") circleColor = "#2563eb";
+    else if (type === "Civic") circleColor = "#10b981";
+    else if (type === "Road") circleColor = "#f59e0b";
+    else if (type === "Event") circleColor = "#7c3aed";
+    else if (type === "Crime") circleColor = "#3b82f6"; 
+
+    const marker = L.marker([lat, lon], {
+      icon: icons[type] || icons.Other
+    }).addTo(locationMap);
+
+    marker.bindPopup(`
+      <b>${type} Issue</b><br>
+      <strong>Description:</strong> ${issue.description}<br>
+      <strong>Location:</strong> ${issue.relative_location || issue.location}<br>
+      <strong>Reported:</strong> ${issue.timestamp}<br>
+      <strong>By:</strong> ${issue.creator_emails?.join(', ') || 'Unknown'}
+    `);
+
+    L.circle([lat, lon], {
+      color: circleColor,
+      fillColor: circleColor,
+      fillOpacity: 0.3,
+      radius: 250
+    }).addTo(locationMap);
+  });
+
+  // Issue Type Legend
+  const issueLegend = L.control({ position: "bottomleft" });
+  issueLegend.onAdd = function () {
+    const div = L.DomUtil.create("div", "info legend");
+    div.innerHTML = `<strong>🗺 Issue Types</strong><br>
+      <i style="background:#dc2626;width:14px;height:14px;display:inline-block;"></i> Safety<br>
+      <i style="background:#2563eb;width:14px;height:14px;display:inline-block;"></i> Traffic<br>
+      <i style="background:#10b981;width:14px;height:14px;display:inline-block;"></i> Civic<br>
+      <i style="background:#f59e0b;width:14px;height:14px;display:inline-block;"></i> Road<br>
+      <i style="background:#7c3aed;width:14px;height:14px;display:inline-block;"></i> Event<br>
+      <i style="background:#3b82f6;width:14px;height:14px;display:inline-block;"></i> Crime<br>`;  
+    return div;
+  };
+  issueLegend.addTo(locationMap);
+</script>
+
+<!-- Modal Structure -->
+<div id="issueModal">
+  <div class="modal-box">
+    <span class="close-btn" onclick="closeModal()">×</span>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+</body>
+</html>
+

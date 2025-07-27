@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Social Insights</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f9fafb;
+      display: flex;
+      height: 100vh;
+      color: #1f2937;
+    }
+
+    .sidebar {
+      width: 270px;
+      background-color: #111827;
+      color: rgb(255, 255, 255);
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 28px;
+      margin-bottom: 40px;
+      color: rgb(232, 127, 7);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      background-color: transparent;
+      transition: background 0.25s;
+      font-size: 16px;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background-color: #5f6875;
+    }
+
+    .nav-item i,
+    .nav-item svg {
+      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    .sidebar .user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      padding-top: 28px;
+    }
+
+    .sidebar .user img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-right: 14px;
+      border: 2px solid white;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px 50px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 20px 26px;
+      border-radius: 18px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .header svg {
+      width: 22px;
+      height: 22px;
+      margin-right: 12px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #f97316;
+    }
+
+    .scroll-card {
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    .insight-item {
+      background-color: #f0f9ff;
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .insight-item h4 {
+      font-size: 16px;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .insight-item p {
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+
+    .insight-item a {
+      color: #3b82f6;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .insight-item a:hover {
+      text-decoration: underline;
+    }
+
+    .back-button {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+    }
+
+    .back-button button {
+      background-color: #e5e7eb;
+      color: #111827;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    canvas {
+      display: block;
+      margin: auto;
+      width: 320px !important;
+      height: 320px !important;
+    }
+
+    @media (max-width: 960px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2><b>Dashboard</b></h2>
+    <a href="{{ url_for('dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bell"></i> Today's Alerts</div></a>
+    <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bar-chart-2"></i> Admin Analytics</div></a>
+    <a href="{{ url_for('create_issue') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="plus-circle"></i> Create Issue</div></a>
+    <a href="{{ url_for('current_issues') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="tool"></i> Current Issues</div></a>
+    <a href="{{ url_for('search') }}" style="text-decoration: none; color: inherit;"> <div class="nav-item"><i data-feather="search"></i> Search</div></a> 
+    <div class="nav-item active"><i data-feather="activity"></i> Social Insights</div>
+    <div class="user">
+      <img src="{{ url_for('static', filename='user_profile.png') }}" alt="User" />
+      <div style="font-size: 30px;">User</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <i data-feather="activity"></i> Social Insights from News
+    </div>
+
+    <div class="cards">
+      <!-- Scrollable Insights Card -->
+      <div class="card scroll-card">
+        <h3>📰 Recent Social Insights</h3>
+        {% if insights %}
+          {% for item in insights %}
+          <div class="insight-item">
+            <h4>📍 {{ item.city }}</h4>
+            <p><strong>Category:</strong> {{ item.classification }}</p>
+            <p><strong>Timestamp:</strong> {{ item.timestamp }}</p>
+            <p><a href="{{ item.url }}" target="_blank">🔗 Read Full Article</a></p>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p>No social insights available.</p>
+        {% endif %}
+      </div>
+
+      <!-- Chart Card -->
+     {% if category_counts and category_counts|length > 0 %}
+     <div class="card" style="position: relative;">
+        <h3>📊 Category Distribution</h3>
+        <canvas id="categoryChart"></canvas>
+     </div>
+     {% endif %}
+     </div>
+
+    <!-- Back Button in bottom-right of .main -->
+    <div class="back-button">
+      <a href="{{ url_for('dashboard') }}" style="text-decoration: none;">
+        <button>← Back to Dashboard</button>
+      </a>
+    </div>
+  </div>
+
+  <script>
+  feather.replace();
+
+  {% if category_counts and category_counts|length > 0 %}
+  const ctx = document.getElementById('categoryChart').getContext('2d');
+
+  const categoryLabels = {{ category_counts.keys()|list | tojson }};
+  const categoryValues = {{ category_counts.values()|list | tojson }};
+
+  const defaultColors = {
+    'civic': '#4F46E5',
+    'crime': '#F43F5E',
+    'traffic': '#FACC15',
+    'event': '#06B6D4',
+    'other': '#FACC15'
+  };
+
+  // Fallback color palette for new/unknown categories
+  const fallbackColors = ['#6366F1', '#FB923C', '#8B5CF6', '#14B8A6', '#EF4444', '#FACC15'];
+  let fallbackIndex = 0;
+
+  const backgroundColors = categoryLabels.map(label => {
+    if (defaultColors[label]) {
+      return defaultColors[label];
+    } else {
+      const color = fallbackColors[fallbackIndex % fallbackColors.length];
+      fallbackIndex++;
+      return color;
+    }
+  });
+
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: categoryLabels,
+      datasets: [{
+        label: 'News Categories',
+        data: categoryValues,
+        backgroundColor: backgroundColors
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  {% endif %}
+</script>
+
+</body>
+</html>

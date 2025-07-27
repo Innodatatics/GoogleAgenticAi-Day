@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Issue - Smart Alert Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .sidebar {
+      width: 270px;
+      background-color: #111827;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+      height: 100vh;
+    }
+    .sidebar h2 {
+      font-size: 28px;
+      margin-bottom: 40px;
+      color: rgb(232, 127, 7);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      background-color: transparent;
+      transition: background 0.25s;
+      font-size: 16px;
+    }
+    .nav-item.active,
+    .nav-item:hover {
+      background-color: #5f6875;
+    }
+    .nav-item i,
+    .nav-item svg {
+      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+    .user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      padding-top: 28px;
+    }
+    .user img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-right: 14px;
+      border: 2px solid white;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex bg-gray-100 text-gray-900">
+
+  <!-- Sidebar -->
+  <aside class="sidebar h-auto min-h-screen">
+    <h2><b>Dashboard</b></h2>
+    <a href="/" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bell"></i> Today's Alerts</div></a>
+    <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bar-chart-2"></i> Admin Analytics</div></a>
+    <div class="nav-item active"><i data-feather="plus-circle"></i> Create Issue</div>
+    <a href="{{ url_for('current_issues') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="tool"></i> Current Issues</div></a>
+    <a href="{{ url_for('search') }}" style="text-decoration: none; color: inherit;"> <div class="nav-item"><i data-feather="search"></i> Search</div></a> 
+    <a href="{{ url_for('social_insights') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="activity"></i> Social Insights</div></a>
+    <div class="user">
+      <img src="{{ url_for('static', filename='user_profile.png') }}" alt="User" />
+      <div style="font-size: 24px;">User</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-9 flex flex-col bg-white rounded-tl-3xl shadow-md min-h-screen">
+    <div class="flex justify-center mb-8 py-4" style="background-color: rgb(232, 127, 7);">
+       <h1 class="text-4xl font-bold text-center text-white">Create New Issue</h1>
+    </div>
+
+    <section class="bg-white p-8 rounded-xl shadow-lg flex-1">
+      <form id="createIssueForm" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium mb-1">Name</label>
+          <input type="text" name="name" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Email</label>
+          <input type="email" name="email" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Phone</label>
+          <input type="tel" name="phone" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Issue Type</label>
+          <select name="issue_type" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm">
+            <option> </option>
+            <option>Traffic</option>
+            <option>Civic</option>
+            <option>Crime</option>
+            <option>Event</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Description</label>
+          <textarea name="description" rows="2" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm"></textarea>
+        </div>
+
+        <div class="relative">
+            <label class="block text-sm font-medium mb-1">Location (City, Address or Lat, Lon)</label>
+            <input type="text" id="location" name="location" required autocomplete="off" placeholder="e.g., Nellore, Andhra Pradesh or 14.4426,79.9865" class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm" />
+            <!-- Suggestions dropdown -->
+            <ul id="suggestions" class="absolute z-10 bg-white border border-gray-300 rounded mt-1 w-full hidden max-h-48 overflow-y-auto shadow"></ul>
+               <div class="flex flex-wrap gap-2 mt-3">
+                   <button type="button" id="getCurrentLocation" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-sm">Use Current</button>
+                   <button type="button" id="pickFromMap" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 text-sm">Pick from Map </button>
+                   <button type="button" id="searchLocation" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm">Search Location</button>
+                </div>
+        </div>
+
+        <div class="md:col-span-2">
+          <div id="map" class="h-64 w-full mt-4 rounded-md hidden"></div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Duration</label>
+          <select name="duration" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm">
+            <option> </option>
+            <option>less than 2 hrs </option>
+            <option>less than 5 hrs </option>
+            <option>less than 12 hrs </option>
+            <option>less than 24 hrs</option>
+            <option>1-3 days</option>
+            <option>3-7 days</option>
+            <option>More than 7 days</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Affects Traffic Flow?</label>
+          <select name="traffic_flow" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm">
+            <option> </option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Causing Harm?</label>
+          <select name="causing_harm" required class="w-full border border-gray-300 rounded px-3 py-2 shadow-sm">
+            <option> </option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+        </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="block text-sm font-medium mb-1">Upload Proof</label>
+  <input
+    type="file"
+    name="proof"
+    id="proofUpload"
+    accept="image/*"
+    class="w-full border border-gray-300 rounded px-3 py-2"
+  />
+  <button type="button" id="openCamera" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm w-full">
+    📷 Capture from Camera
+  </button>
+  <video id="videoPreview" class="hidden w-full rounded" autoplay playsinline></video>
+  <canvas id="canvasCapture" class="hidden"></canvas>
+  <button type="button" id="captureBtn" class="hidden bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm w-full mt-2">
+    ✅ Capture Image
+  </button>
+</div>
+        <div class="md:col-span-2">
+          <button type="submit" class="w-full bg-[rgb(232,127,7)] text-white py-3 rounded-md hover:bg-orange-700 transition font-semibold">Submit Ticket</button>
+          <p id="message" class="mt-3 text-sm text-gray-600"></p>
+        </div>
+      </form>
+    </section><br>
+    <div class="flex justify-end mt-auto">
+       <a href="{{ url_for('dashboard') }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">
+          <b>← Back to Dashboard</b>
+       </a>
+    </div>
+  </main>
+
+  <script>
+  feather.replace();
+
+  let map, marker;
+
+  function initMap(lat = 12.9716, lng = 77.5946) {
+    map = L.map('map').setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+    marker.on('dragend', e => {
+      const { lat, lng } = marker.getLatLng();
+      document.getElementById('location').value = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    });
+
+    map.on('click', e => {
+      const { lat, lng } = e.latlng;
+      marker.setLatLng([lat, lng]);
+      document.getElementById('location').value = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    });
+  }
+
+  document.getElementById('pickFromMap').addEventListener('click', () => {
+    const mapDiv = document.getElementById('map');
+    mapDiv.classList.remove('hidden');
+    if (!map) {
+      initMap();
+    } else {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+    }
+  });
+
+  document.getElementById('getCurrentLocation').addEventListener('click', () => {
+    navigator.geolocation?.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        document.getElementById('location').value = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+        if (!map) {
+          initMap(latitude, longitude);
+        } else {
+          map.setView([latitude, longitude], 13);
+          marker.setLatLng([latitude, longitude]);
+        }
+      },
+      err => {
+        const msg = document.getElementById('message');
+        msg.textContent = `Error: ${err.message}`;
+        msg.classList.add('text-red-500');
+      }
+    );
+  });
+
+  document.getElementById('searchLocation').addEventListener('click', async () => {
+    const input = document.getElementById('location').value.trim();
+    const msg = document.getElementById('message');
+
+    if (!input) {
+      msg.textContent = 'Please enter a location to search.';
+      msg.classList.add('text-red-500');
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}`);
+      const results = await response.json();
+
+      if (results.length === 0) {
+        msg.textContent = 'No location found. Please refine your input.';
+        msg.classList.add('text-red-500');
+        return;
+      }
+
+      const { lat, lon, display_name } = results[0];
+      document.getElementById('location').value = `${lat},${lon}`;
+      msg.textContent = `Found: ${display_name}`;
+      msg.classList.remove('text-red-500');
+
+      if (!map) {
+        initMap(parseFloat(lat), parseFloat(lon));
+      } else {
+        map.setView([lat, lon], 13);
+        marker.setLatLng([lat, lon]);
+      }
+    } catch (error) {
+      msg.textContent = 'Error finding location.';
+      msg.classList.add('text-red-500');
+    }
+  });
+
+  // Submit Form with Popup
+  document.getElementById('createIssueForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('message');
+    msg.textContent = 'Submitting...';
+    msg.classList.remove('text-red-500');
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const locationValue = formData.get('location');
+    let location = locationValue;
+
+    if (/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(locationValue)) {
+      location = locationValue.split(',').map(Number);
+    }
+
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      issue_type: formData.get('issue_type'),
+      description: formData.get('description'),
+      location: location,
+      duration: formData.get('duration'),
+      traffic_flow: formData.get('traffic_flow'),
+      causing_harm: formData.get('causing_harm')
+    };
+
+    try {
+      const res = await fetch('/create_issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Submission failed');
+
+      msg.textContent = `Report ID: ${result.id} created.`;
+
+      const proof = formData.get('proof');
+      if (proof && proof.size > 0) {
+        const proofForm = new FormData();
+        proofForm.append('proof', proof);
+        proofForm.append('report_id', result.id);
+
+        const uploadRes = await fetch('/upload_proof', {
+          method: 'POST',
+          body: proofForm
+        });
+        const uploadResult = await uploadRes.json();
+        msg.textContent += ` | Proof uploaded: ${uploadResult.url || 'success'}`;
+      }
+
+      // Reset form
+      form.reset();
+      document.getElementById('map').classList.add('hidden');
+      if (marker) {
+        marker.remove();
+        marker = null;
+      }
+
+      // Show Success Popup
+      showSuccessPopup(result.id);
+
+      setTimeout(() => {
+      window.location.reload();
+      }, 2000);
+
+    } catch (err) {
+      msg.textContent = `Error: ${err.message}`;
+      msg.classList.add('text-red-500');
+    }
+  });
+
+  // Show success popup with ticket ID
+  function showSuccessPopup(ticketId) {
+    document.getElementById('ticketIdDisplay').textContent = ticketId;
+    document.getElementById('successPopup').classList.remove('hidden');
+  }
+
+  // Close success popup
+  function closeSuccessPopup() {
+    document.getElementById('successPopup').classList.add('hidden');
+  }
+
+
+let video = document.getElementById('videoPreview');
+let canvas = document.getElementById('canvasCapture');
+let openCameraBtn = document.getElementById('openCamera');
+let captureBtn = document.getElementById('captureBtn');
+let proofInput = document.getElementById('proofUpload');
+let stream;
+
+openCameraBtn.addEventListener('click', async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    video.classList.remove('hidden');
+    captureBtn.classList.remove('hidden');
+    canvas.classList.add('hidden');
+  } catch (err) {
+    alert("Unable to access camera: " + err.message);
+  }
+});
+
+captureBtn.addEventListener('click', () => {
+  const context = canvas.getContext('2d');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Stop video stream
+  stream.getTracks().forEach(track => track.stop());
+
+  // Hide UI elements after capture
+  video.classList.add('hidden');
+  captureBtn.classList.add('hidden');
+  canvas.classList.add('hidden'); // <- Don't show the canvas image
+
+  // Convert canvas to Blob and assign to the file input
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'captured_image.jpg', { type: 'image/jpeg' });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    proofInput.files = dataTransfer.files;
+  }, 'image/jpeg', 0.95);
+});
+
+</script>
+
+<!-- Success Popup Modal -->
+<div id="successPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+    <h2 class="text-2xl font-bold text-green-600 mb-4">🎉 Ticket Submitted!</h2>
+    <p class="text-gray-800 mb-2">You have been awarded for your report.</p>
+    <p class="font-semibold text-orange-600 mb-4">Ticket ID: <span id="ticketIdDisplay"></span></p>
+    <button onclick="closeSuccessPopup()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">OK</button>
+  </div>
+</div>
+
+</body>
+</html>

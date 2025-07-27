@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Current Issues</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f9fafb;
+      display: flex;
+      height: 100vh;
+      color: #1f2937;
+    }
+
+    .sidebar {
+      width: 270px;
+      background-color: #111827;
+      color: rgb(255, 255, 255);
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 28px;
+      margin-bottom: 40px;
+      color: rgb(232, 127, 7);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      background-color: transparent;
+      transition: background 0.25s;
+      font-size: 16px;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background-color: #5f6875;
+    }
+
+    .nav-item i,
+    .nav-item svg {
+      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    .sidebar .user {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      padding-top: 28px;
+    }
+
+    .sidebar .user img {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-right: 14px;
+      border: 2px solid white;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px 50px;
+      overflow-y: auto;
+    }
+
+    .main h1 {
+      font-size: 32px;
+      font-weight: 600;
+      color: rgb(232, 127, 7);
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 22px 26px;
+      border-left: 15px solid #73b6d5;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card h3 {
+      font-size: 22px;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+
+    .issue-details span {
+      display: block;
+      margin-top: 6px;
+      font-size: 15px;
+      color: #374151;
+    }
+
+    .issue-details ul {
+      margin-top: 6px;
+      margin-left: 20px;
+    }
+
+    .issue-details a {
+      color: #0284c7;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .issue-details a:hover {
+      text-decoration: underline;
+    }
+
+    .back-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
+      background-color: #c6c8cc;
+      padding: 10px 18px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #111827;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .back-btn:hover {
+      background-color: #798db4;
+    }
+
+    /* Modal */
+    #issueModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #issueModal .modal-box {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+
+    #issueModal .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 22px;
+      cursor: pointer;
+      color: #555;
+    }
+    
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2><b>Dashboard</b></h2>
+    <a href="{{ url_for('dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bell"></i> Today's Alerts</div></a>
+    <a href="{{ url_for('admin_dashboard') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="bar-chart-2"></i> Admin Analytics</div></a>
+    <a href="{{ url_for('create_issue') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="plus-circle"></i> Create Issue</div></a>
+    <div class="nav-item active"><i data-feather="tool"></i> Current Issues</div>
+    <a href="{{ url_for('search') }}" style="text-decoration: none; color: inherit;"> <div class="nav-item"><i data-feather="search"></i> Search</div></a> 
+    <a href="{{ url_for('social_insights') }}" style="text-decoration: none; color: inherit;"><div class="nav-item"><i data-feather="activity"></i> Social Insights</div></a>
+    <div class="user">
+      <img src="{{ url_for('static', filename='user_profile.png') }}" alt="User" />
+      <div style="font-size: 24px;">User</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+  <div class="header" style="display: flex; align-items: center; justify-content: space-between;">
+    <h1>Current Issues</h1>
+    <a href="{{ url_for('dashboard') }}" class="back-btn" style="position: static;">← Back to Dashboard</a>
+  </div>
+
+  <!-- 🔍 Search & Filters -->
+  <div class="filters" style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+    <input type="text" id="searchInput" placeholder="Search by type, description, location..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ccc;" />
+    <select id="typeFilter" style="padding: 10px; border-radius: 10px; border: 1px solid #ccc;">
+      <option value="">All Types</option>
+      <option value="Traffic">Traffic</option>
+      <option value="Crime">Crime</option>
+      <option value="Road">Road</option>
+      <option value="Civic">Civic</option>
+      <option value="Other">Other</option>
+    </select>
+    <input type="date" id="startDate" style="padding: 10px; border-radius: 10px; border: 1px solid #ccc;" />
+    <input type="date" id="endDate" style="padding: 10px; border-radius: 10px; border: 1px solid #ccc;" />
+  </div>
+
+  {% if issues %}
+    <div id="results">
+      {% for issue in issues %}
+        <div class="card">
+          <h3><i data-feather="alert-triangle"></i> {{ issue.issue_type }}</h3>
+          <div class="issue-details">
+            <span><strong>Description:</strong> {{ issue.description }}</span>
+            <span><strong>Location:</strong> {{ issue.relative_location or issue.location }}</span>
+            <span><strong>Reported on:</strong> {{ issue.timestamp }}</span>
+            <span><strong>Reported by:</strong> {{ issue.creator_emails | join(', ') }}</span>
+            <span><strong>Solved:</strong> {{ 'Yes' if issue.is_solved else 'No' }}</span>
+            <span><strong>No. of Reports:</strong> {{ issue.no_of_reports }}</span>
+            <span><strong>Related Reports:</strong>
+              {% if issue.related_report_ids %}
+                {{ issue.related_report_ids | join(', ') }}
+              {% else %}
+                None
+              {% endif %}
+            </span>
+            <span><strong>Proofs:</strong>
+              {% if issue.proofs %}
+                <ul>
+                  {% for proof in issue.proofs %}
+                    <li><a href="{{ proof }}" target="_blank">View</a></li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                None
+              {% endif %}
+            </span>
+            <a href="javascript:void(0)" onclick="openIssuePopup('{{ issue.id }}')">Read more</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No issues reported yet.</p>
+  {% endif %}
+</div>
+
+  <!-- Modal -->
+  <div id="issueModal">
+    <div class="modal-box">
+      <span class="close-btn" onclick="closeModal()">×</span>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+  feather.replace();
+
+  const searchInput = document.getElementById('searchInput');
+  const typeFilter = document.getElementById('typeFilter');
+  const startDate = document.getElementById('startDate');
+  const endDate = document.getElementById('endDate');
+  const cards = document.querySelectorAll('#results .card');
+
+  function filterResults() {
+    const query = searchInput.value.toLowerCase();
+    const type = typeFilter.value.toLowerCase();
+    const start = startDate.value ? new Date(startDate.value) : null;
+    const end = endDate.value ? new Date(endDate.value) : null;
+
+    cards.forEach(card => {
+      const text = card.innerText.toLowerCase();
+      const dateText = card.querySelector('span:nth-child(3)').innerText;
+      const dateStr = dateText.split('Reported on:')[1]?.trim();
+      const issueDate = new Date(dateStr);
+
+      const matchesQuery = text.includes(query);
+      const matchesType = !type || text.includes(type);
+      const matchesStart = !start || (issueDate >= start);
+      const matchesEnd = !end || (issueDate <= end);
+
+      card.style.display = (matchesQuery && matchesType && matchesStart && matchesEnd) ? 'block' : 'none';
+    });
+  }
+
+  searchInput.addEventListener('input', filterResults);
+  typeFilter.addEventListener('change', filterResults);
+  startDate.addEventListener('change', filterResults);
+  endDate.addEventListener('change', filterResults);
+
+  function openIssuePopup(issueId) {
+    fetch(`/issue/${issueId}`)
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('issueModal').style.display = 'flex';
+      })
+      .catch(err => {
+        alert("Failed to load issue details");
+        console.error(err);
+      });
+  }
+
+  function closeModal() {
+    document.getElementById('issueModal').style.display = 'none';
+    document.getElementById('modalContent').innerHTML = '';
+  }
+</script>
+
+
+</body>
+</html>
